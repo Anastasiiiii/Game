@@ -107,7 +107,7 @@ public class SnakeGame extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(final ActionEvent e) {
-        if(gameStarted) {
+        if(gameStarted && !gameOver) {
             move();
         }
         repaint();

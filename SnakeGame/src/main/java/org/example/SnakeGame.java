@@ -16,6 +16,9 @@ public class SnakeGame extends JPanel implements ActionListener {
     private static final int FRAME_RATE = 20;
     private boolean gameStarted = false;
     private boolean gameOver = false;
+    private Direction direction = Direction.LEFT;
+    private Direction newDirection = Direction.RIGHT;
+
     private final ArrayList<GamePoint> snake = new ArrayList<>();
 
     public SnakeGame(final int width, final int height) {
@@ -45,14 +48,36 @@ public class SnakeGame extends JPanel implements ActionListener {
         requestFocusInWindow();
         addKeyListener(new KeyAdapter() {
             @Override
-            public void keyPressed(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_SPACE){
-                    gameStarted = true;
-                }
+            public void keyPressed(final KeyEvent e) {
+                handleKeyEvent(e.getKeyCode());
             }
         });
 
         new Timer(1000 / FRAME_RATE, this).start();
+    }
+
+    private void handleKeyEvent(final int keyCode) {
+        if(!gameStarted) {
+            if(keyCode == KeyEvent.VK_SPACE){
+                gameStarted = true;
+            }
+        } else if(!gameOver) {
+            switch (keyCode) {
+                case KeyEvent.VK_UP:
+                    newDirection = Direction.UP;
+                    break;
+                case KeyEvent.VK_DOWN:
+                    newDirection = Direction.DOWN;
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    newDirection = Direction.RIGHT;
+                    break;
+                case KeyEvent.VK_LEFT:
+                    newDirection = Direction.LEFT;
+                    break;
+            }
+        }
+
     }
 
     @Override
@@ -113,7 +138,9 @@ public class SnakeGame extends JPanel implements ActionListener {
         repaint();
     }
 
-    private record GamePoint(int x, int y){
+    private record GamePoint(int x, int y){}
 
+    private enum Direction {
+        UP, DOWN, RIGHT, LEFT
     }
 }

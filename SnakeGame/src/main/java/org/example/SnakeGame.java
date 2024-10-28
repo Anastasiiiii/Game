@@ -8,14 +8,17 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextLayout;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class SnakeGame extends JPanel implements ActionListener {
     private final int width;
     private final int height;
     private final int cellSize;
+    private final Random random = new Random();
     private static final int FRAME_RATE = 20;
     private boolean gameStarted = false;
     private boolean gameOver = false;
+    private GamePoint food;
     private Direction direction = Direction.LEFT;
     private Direction newDirection = Direction.RIGHT;
 
@@ -38,7 +41,8 @@ public class SnakeGame extends JPanel implements ActionListener {
         // Create Color object using HSB values
         Color backgroundColor = Color.getHSBColor(hsbValues[0], hsbValues[1], hsbValues[2]);
 
-        setBackground(backgroundColor);
+        //setBackground(backgroundColor);
+        setBackground(Color.black);
     }
 
     public void startGame() {
@@ -64,16 +68,24 @@ public class SnakeGame extends JPanel implements ActionListener {
         } else if(!gameOver) {
             switch (keyCode) {
                 case KeyEvent.VK_UP:
-                    newDirection = Direction.UP;
+                    if(direction != Direction.DOWN) {
+                        newDirection = Direction.UP;
+                    }
                     break;
                 case KeyEvent.VK_DOWN:
-                    newDirection = Direction.DOWN;
+                    if(direction != Direction.UP){
+                        newDirection = Direction.DOWN;
+                    }
                     break;
                 case KeyEvent.VK_RIGHT:
-                    newDirection = Direction.RIGHT;
+                    if(direction != Direction.LEFT){
+                        newDirection = Direction.RIGHT;
+                    }
                     break;
                 case KeyEvent.VK_LEFT:
-                    newDirection = Direction.LEFT;
+                    if(direction != Direction.RIGHT) {
+                        newDirection = Direction.LEFT;
+                    }
                     break;
             }
         }
@@ -98,6 +110,8 @@ public class SnakeGame extends JPanel implements ActionListener {
                 currentHeight += graphics.getFontMetrics().getHeight();
             }
         } else {
+            graphics.setColor(Color.cyan);
+
             graphics.setColor(Color.MAGENTA);
             for (final var point : snake){
                 graphics.fillRect(point.x, point.y, cellSize, cellSize);
@@ -108,11 +122,25 @@ public class SnakeGame extends JPanel implements ActionListener {
     private void resetGame() {
         snake.clear();
         snake.add(new GamePoint(width / 2, height / 2));
+        generateFood();
+    }
+
+    private void generateFood(){
+        do {
+            food = new GamePoint(random.nextInt(width / cellSize) * cellSize, random.nextInt(height/ cellSize) * cellSize);
+        } while (snake.contains(food));
     }
 
     private void move() {
+        direction = newDirection;
+
         final GamePoint currentHead = snake.getFirst();
-        final GamePoint newHead = new GamePoint(currentHead.x+cellSize, currentHead.y);
+        final GamePoint newHead = switch(direction) {
+            case UP -> new GamePoint(currentHead.x, currentHead.y - cellSize);
+            case DOWN -> new GamePoint(currentHead.x, currentHead.y + cellSize);
+            case RIGHT -> new GamePoint(currentHead.x + cellSize, currentHead.y);
+            case LEFT -> new GamePoint(currentHead.x - cellSize, currentHead.y);
+        };
         snake.addFirst(newHead);
 
         if(checkCollision()){

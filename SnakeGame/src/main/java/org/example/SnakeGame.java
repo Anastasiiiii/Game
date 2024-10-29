@@ -16,8 +16,10 @@ public class SnakeGame extends JPanel implements ActionListener {
     private final int cellSize;
     private final Random random = new Random();
     private static final int FRAME_RATE = 20;
+    private static final int TIMER_RATE = 10;
     private boolean gameStarted = false;
     private boolean gameOver = false;
+    private int points = 0;
     private GamePoint food;
     private Direction direction = Direction.LEFT;
     private Direction newDirection = Direction.RIGHT;
@@ -31,18 +33,28 @@ public class SnakeGame extends JPanel implements ActionListener {
         this.cellSize = width / (FRAME_RATE * 2);
         setPreferredSize(new Dimension(width, height));
         // RGB values for #00643a
+        /*
         int red = 0;
         int green = 100;
         int blue = 58;
+        */
 
         // Convert RGB to HSB
-        float[] hsbValues = Color.RGBtoHSB(red, green, blue, null);
+        //float[] hsbValues = Color.RGBtoHSB(red, green, blue, null);
 
         // Create Color object using HSB values
-        Color backgroundColor = Color.getHSBColor(hsbValues[0], hsbValues[1], hsbValues[2]);
+       // Color backgroundColor = Color.getHSBColor(hsbValues[0], hsbValues[1], hsbValues[2]);
 
         //setBackground(backgroundColor);
         setBackground(Color.black);
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
     }
 
     public void startGame() {
@@ -57,7 +69,7 @@ public class SnakeGame extends JPanel implements ActionListener {
             }
         });
 
-        new Timer(1000 / FRAME_RATE, this).start();
+        new Timer(1000 / TIMER_RATE, this).start();
     }
 
     private void handleKeyEvent(final int keyCode) {
@@ -96,9 +108,9 @@ public class SnakeGame extends JPanel implements ActionListener {
     protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
         if(!gameStarted) {
-            graphics.setColor(Color.ORANGE);
+            graphics.setColor(Color.WHITE);
             graphics.setFont(graphics.getFont().deriveFont(30F));
-            int currentHeight = height / 4;
+            int currentHeight = height / 3;
             final var graphics2D = (Graphics2D) graphics;
             final var frc = graphics2D.getFontRenderContext();
             final String message = "Press Space To\nStart The Game";
@@ -109,12 +121,26 @@ public class SnakeGame extends JPanel implements ActionListener {
                 layout.draw(graphics2D, targetWidth, currentHeight);
                 currentHeight += graphics.getFontMetrics().getHeight();
             }
+        } else if(gameOver) {
+            graphics.setColor(Color.WHITE);
+            graphics.setFont(graphics.getFont().deriveFont(30F));
+            int currentHeight = height / 3;
+            final var graphics2D = (Graphics2D) graphics;
+            final var frc = graphics2D.getFontRenderContext();
+            String pointsMessage = "Your score: " + getPoints();
+            var layout = new TextLayout(pointsMessage, graphics.getFont(), frc);
+            final var bounds = layout.getBounds();
+            final var targetWidth = (float) (width-bounds.getWidth()) /2;
+            layout.draw(graphics2D, targetWidth, currentHeight);
         } else {
             graphics.setColor(Color.cyan);
-
-            graphics.setColor(Color.MAGENTA);
+            graphics.fillRect(food.x, food.y, cellSize, cellSize);
+            Color snakeColor = Color.MAGENTA;
             for (final var point : snake){
+                graphics.setColor(snakeColor);
                 graphics.fillRect(point.x, point.y, cellSize, cellSize);
+                final int newMagenta = (int) Math.round(snakeColor.getRed() * (0.95));
+                snakeColor = new Color(newMagenta, 0, 220);
             }
         }
     }
@@ -143,7 +169,11 @@ public class SnakeGame extends JPanel implements ActionListener {
         };
         snake.addFirst(newHead);
 
-        if(checkCollision()){
+        if(newHead.equals(food)){
+            generateFood();
+            points += 1;
+            setPoints(points);
+        } else if(checkCollision()){
             gameOver = true;
             snake.removeFirst();
         } else {

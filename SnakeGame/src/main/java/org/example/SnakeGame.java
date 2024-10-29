@@ -10,6 +10,8 @@ import java.awt.font.TextLayout;
 import java.util.ArrayList;
 import java.util.Random;
 
+import static java.awt.event.KeyEvent.VK_SPACE;
+
 public class SnakeGame extends JPanel implements ActionListener {
     private final int width;
     private final int height;
@@ -32,20 +34,6 @@ public class SnakeGame extends JPanel implements ActionListener {
         this.height = height;
         this.cellSize = width / (FRAME_RATE * 2);
         setPreferredSize(new Dimension(width, height));
-        // RGB values for #00643a
-        /*
-        int red = 0;
-        int green = 100;
-        int blue = 58;
-        */
-
-        // Convert RGB to HSB
-        //float[] hsbValues = Color.RGBtoHSB(red, green, blue, null);
-
-        // Create Color object using HSB values
-       // Color backgroundColor = Color.getHSBColor(hsbValues[0], hsbValues[1], hsbValues[2]);
-
-        //setBackground(backgroundColor);
         setBackground(Color.black);
     }
 
@@ -74,7 +62,7 @@ public class SnakeGame extends JPanel implements ActionListener {
 
     private void handleKeyEvent(final int keyCode) {
         if(!gameStarted) {
-            if(keyCode == KeyEvent.VK_SPACE){
+            if(keyCode == VK_SPACE){
                 gameStarted = true;
             }
         } else if(!gameOver) {
@@ -100,8 +88,13 @@ public class SnakeGame extends JPanel implements ActionListener {
                     }
                     break;
             }
+        } else {
+            if(keyCode == VK_SPACE){
+                gameOver = false; // Знімаємо статус gameOver
+                restartGame();    // Перезапускаємо гру
+                gameStarted = true;
+            }
         }
-
     }
 
     @Override
@@ -113,7 +106,7 @@ public class SnakeGame extends JPanel implements ActionListener {
             int currentHeight = height / 3;
             final var graphics2D = (Graphics2D) graphics;
             final var frc = graphics2D.getFontRenderContext();
-            final String message = "Press Space To\nStart The Game";
+            final String message = "Press space to\nstart the game";
             for (final var line : message.split("\n")) {
                 final var layout = new TextLayout(line, graphics.getFont(), frc);
                 final var bounds = layout.getBounds();
@@ -127,11 +120,14 @@ public class SnakeGame extends JPanel implements ActionListener {
             int currentHeight = height / 3;
             final var graphics2D = (Graphics2D) graphics;
             final var frc = graphics2D.getFontRenderContext();
-            String pointsMessage = "Your score: " + getPoints();
-            var layout = new TextLayout(pointsMessage, graphics.getFont(), frc);
-            final var bounds = layout.getBounds();
-            final var targetWidth = (float) (width-bounds.getWidth()) /2;
-            layout.draw(graphics2D, targetWidth, currentHeight);
+            String pointsMessage = "Your score: " + getPoints() +"\n Press space to start the game again";
+            for(final var line : pointsMessage.split("\n")) {
+                final var layout = new TextLayout(line, graphics.getFont(), frc);
+                final var bounds = layout.getBounds();
+                final var targetWidth = (float) (width - bounds.getWidth()) / 2;
+                layout.draw(graphics2D, targetWidth, currentHeight);
+                currentHeight += graphics.getFontMetrics().getHeight();
+            }
         } else {
             graphics.setColor(Color.cyan);
             graphics.fillRect(food.x, food.y, cellSize, cellSize);
@@ -145,6 +141,14 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    private void restartGame() {
+        setPoints(0);
+        gameOver = false;
+        gameStarted = false;
+        resetGame();
+        repaint();
+    }
+
     private void resetGame() {
         snake.clear();
         snake.add(new GamePoint(width / 2, height / 2));
@@ -153,7 +157,7 @@ public class SnakeGame extends JPanel implements ActionListener {
 
     private void generateFood(){
         do {
-            food = new GamePoint(random.nextInt(width / cellSize) * cellSize, random.nextInt(height/ cellSize) * cellSize);
+            food = new GamePoint(random.nextInt((width / cellSize) - cellSize) * cellSize, random.nextInt((height/ cellSize) - cellSize) * cellSize);
         } while (snake.contains(food));
     }
 
